@@ -294,6 +294,19 @@ test('an undefended wall loses, never goes negative, and cannot restart', () => 
   assert.deepEqual(state, final);
 });
 
+test('the untouched starting pair eventually loses without building or upgrades', () => {
+  const state = createGame();
+  const startingPieces = clone(state.pieces).map(({ cooldown, ...piece }) => piece);
+  while (state.phase === 'build' && state.wave < MAX_WAVES) {
+    assert.equal(startWave(state).ok, true);
+    runWave(state);
+  }
+  assert.equal(state.phase, 'lost', 'Progression must require investment beyond the two free guardians');
+  assert.equal(state.wallHp, 0);
+  assert.ok(state.wave > 1 && state.wave < MAX_WAVES, 'Starter pair should teach the basics before the difficulty catches up');
+  assert.deepEqual(state.pieces.map(({ cooldown, ...piece }) => piece), startingPieces);
+});
+
 test('a legal, affordable build-and-upgrade strategy completes all twelve waves', () => {
   const state = createGame();
   const additions = ['frost', 'chain', 'laser', 'mortar', 'chain', 'laser', 'mortar', 'laser'];
